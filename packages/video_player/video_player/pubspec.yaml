@@ -25,7 +25,10 @@ dependencies:
     sdk: flutter
   html: ^0.15.0
   video_player_android: 
-    path: ../video_player_android
+    git:
+      url: https://github.com/gaogq3/packages.git
+      path: packages/video_player/video_player_android
+      ref: v1.0.0
   video_player_avfoundation: ^2.5.0
   video_player_platform_interface: ">=6.1.0 <7.0.0"
   video_player_web: ^2.0.0
