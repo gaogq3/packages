@@ -185,6 +185,41 @@ static void *rateContext = &rateContext;
                                            selector:@selector(itemDidPlayToEndTime:)
                                                name:AVPlayerItemDidPlayToEndTimeNotification
                                              object:item];
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(handleInterruption:)
+                                               name:AVAudioSessionInterruptionNotification
+                                             object:[AVAudioSession sharedInstance]];
+}
+
+- (void)handleInterruption:(NSNotification *)notification {
+    NSNumber *typeValue = notification.userInfo[AVAudioSessionInterruptionTypeKey];
+    if (typeValue == nil) {
+        return;
+    }
+    
+    AVAudioSessionInterruptionType type = (AVAudioSessionInterruptionType)[typeValue unsignedIntegerValue];
+    
+    switch (type) {
+        case AVAudioSessionInterruptionTypeEnded: {
+            NSNumber *optionValue = notification.userInfo[AVAudioSessionInterruptionOptionKey];
+            if (optionValue == nil) {
+                return;
+            }
+            AVAudioSessionInterruptionOptions options = (AVAudioSessionInterruptionOptions)[optionValue unsignedIntegerValue];
+            if (options & AVAudioSessionInterruptionOptionShouldResume) {
+                // 被打断前是isPlaying状态，才需要恢复
+                if (_isPlaying) {
+                    [self updatePlayingState];
+                    if (_eventSink) {
+                      _eventSink(@{@"event" : @"isPlayingStateUpdate", @"isPlaying" : @YES });
+                    }
+                }
+            }
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 - (void)itemDidPlayToEndTime:(NSNotification *)notification {
